@@ -57,7 +57,7 @@ export default function Testimony() {
         {displayedTestimonies.map((testimony, index) => (
           <div
             key={index}
-            className="p-4 flex flex-col rounded-lg shadow-md bg-white hover:shadow-xl transition-shadow duration-300 gap-y-10 justify-between min-h-[30rem]">
+            className="p-4 flex flex-col rounded-lg inset-shadow-sm shadow-sm bg-white hover:shadow-xl transition-shadow duration-300 gap-y-10 justify-between min-h-[30rem]">
             <div className="flex flex-col items-start mb-5 gap-y-5 xl:gap-y-10">
               <FaQuoteLeft className="text-black text-3xl mb-2" />
               <p className="text-black font-[400] text-lg xl:text-xl mb-3">

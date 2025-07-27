@@ -7,6 +7,7 @@ import Profile from "./pages/Profile.jsx";
 import SellerPage from "./pages/SellerPage.jsx";
 import ConsultantPage from "./pages/ConsultantPage.jsx";
 import AdminLogin from "./admins/AdminLogin.jsx";
+import Calculator from "./pages/Calculator.jsx";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/seller" element={<SellerPage />} />
           <Route path="/consultant" element={<ConsultantPage />} />
+          <Route path="/kalkulator" element={<Calculator />} />
         </Route>
 
         {/* Admin Routes */}
