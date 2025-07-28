@@ -8,7 +8,7 @@ export default function RegisterForm() {
     full_name: "",
     email: "",
     password: "",
-    role: "customer", // Default role
+    phone: "",
   });
 
   const handleChange = (e) => {
@@ -93,22 +93,20 @@ export default function RegisterForm() {
               className="border border-gray-300 p-2 py-3 rounded-xl text-white w-full focus:bg-white focus:text-black font-[500]"
             />
           </div>
-          {/* Role */}
+          {/* Phone */}
           <div className="flex flex-col items-center w-full gap-y-1.5">
             <label
-              htmlFor="role"
+              htmlFor="phone"
               className="text-sm text-white font-[400] md:text-md">
-              Sebagai
+              Telepon
             </label>
-            <select
-              id="role"
-              value={formData.role}
+            <input
+              type="text"
+              id="phone"
+              value={formData.phone}
               onChange={handleChange}
-              className="border border-gray-300 p-2 py-3 rounded-xl text-white w-full focus:bg-white focus:text-black font-[500]">
-              <option value="customer">Pelanggan</option>
-              <option value="seller">Penjual</option>
-              <option value="consultant">Konsultan</option>
-            </select>
+              className="border border-gray-300 p-2 py-3 rounded-xl text-white w-full focus:bg-white focus:text-black font-[500]"
+            />
           </div>
           {/* Register Button */}
           <div className="w-full mt-5">

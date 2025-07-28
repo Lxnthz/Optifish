@@ -56,14 +56,7 @@ export default function NavigationBar() {
     if (!storedUser) {
       navigate("/login");
     } else {
-      const user = JSON.parse(storedUser);
-      if (user.role === "seller") {
-        navigate("/seller");
-      } else if (user.role === "consultant") {
-        navigate("/consultant");
-      } else {
-        navigate("/profile");
-      }
+      navigate("/settings")
     }
   };
 

@@ -29,7 +29,6 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255),
-    phone VARCHAR(20),
     role ENUM('guest', 'customer', 'seller', 'admin', 'consultant') DEFAULT 'guest',
     auth_provider ENUM('local', 'google') DEFAULT 'local',
     is_active BOOLEAN DEFAULT TRUE,
