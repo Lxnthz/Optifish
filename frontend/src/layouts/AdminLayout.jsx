@@ -3,14 +3,19 @@ import { Outlet } from "react-router-dom";
 export default function AdminLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      <header className="bg-blue-600 text-white p-4">
-        <h1 className="text-xl font-bold">Admin Panel</h1>
-      </header>
       <main className="flex-1 p-6">
         <Outlet />
       </main>
-      <footer className="bg-gray-800 text-white p-4 text-center">
-        Admin Panel © 2025
+      <footer className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-6">
+        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-6">
+          {/* Left Section */}
+          <div className="flex flex-col items-center md:items-start">
+            <h2 className="text-lg font-bold">Admin Panel</h2>
+            <p className="text-sm opacity-80">
+              © 2025 Optifish. All rights reserved.
+            </p>
+          </div>
+        </div>
       </footer>
     </div>
   );

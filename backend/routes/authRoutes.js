@@ -175,7 +175,8 @@ router.post("/role-upgrade-request", async (req, res) => {
       "SELECT * FROM role_upgrade_requests WHERE user_id = ? AND status = 'pending'",
       [userId]
     );
-    if (existingRequest) {
+
+    if (existingRequest && existingRequest.length > 0) {
       return res
         .status(400)
         .json({ error: "A pending request already exists" });
@@ -183,7 +184,7 @@ router.post("/role-upgrade-request", async (req, res) => {
 
     // Insert the new role upgrade request
     await connection.query(
-      "INSERT INTO role_upgrade_requests (user_id, requested_role) VALUES (?, ?)",
+      "INSERT INTO role_upgrade_requests (user_id, requested_role, status) VALUES (?, ?, 'pending')",
       [userId, requestedRole]
     );
 
@@ -217,11 +218,12 @@ router.post("/role-upgrade-approval", async (req, res) => {
       "SELECT * FROM role_upgrade_requests WHERE id = ?",
       [requestId]
     );
-    if (!request) {
+
+    if (!request || request.length === 0) {
       return res.status(404).json({ error: "Role upgrade request not found" });
     }
 
-    if (request.status !== "pending") {
+    if (request[0].status !== "pending") {
       return res
         .status(400)
         .json({ error: "Request has already been processed" });
@@ -233,36 +235,41 @@ router.post("/role-upgrade-approval", async (req, res) => {
       [status, requestId]
     );
 
-    // If approved, insert data into the respective table
+    // If approved, update the user's role
     if (status === "approved") {
-      const { user_id, requested_role } = request;
-
-      if (requested_role === "seller") {
-        await connection.query(
-          "INSERT INTO sellers (user_id, store_name, store_slug) VALUES (?, ?, ?)",
-          [user_id, "Default Store Name", `store-${user_id}`]
-        );
-      } else if (requested_role === "consultant") {
-        await connection.query(
-          "INSERT INTO consultants (user_id, bio, expertise_area) VALUES (?, ?, ?)",
-          [user_id, "Default Bio", "General Expertise"]
-        );
-      }
-
-      // Update the user's role in the `users` table
-      const newRole = requested_role === "seller" ? "seller" : "consultant";
-      await connection.query("UPDATE users SET role = ? WHERE id = ?", [
-        newRole,
+      const { user_id, requested_role } = request[0];
+      await connection.query(`UPDATE users SET role = ? WHERE id = ?`, [
+        requested_role,
         user_id,
       ]);
     }
 
-    res.status(200).json({ message: `Role upgrade request ${status}` });
+    res.status(200).json({ message: `Request ${status} successfully` });
   } catch (error) {
     console.error("Error processing role upgrade request:", error);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (connection) connection.release();
+  }
+});
+
+// Register Basic Admin Endpoint
+router.post("/admin/register-basic-admin", async (req, res) => {
+  const { full_name, email, password } = req.body;
+  const connection = await pool.getConnection();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    await connection.query(
+      "INSERT INTO admins (full_name, email, password_hash, role, created_at) VALUES (?, ?, ?, 'basic_admin', NOW())",
+      [full_name, email, hashedPassword]
+    );
+    res.status(201).json({ message: "Basic Admin registered successfully!" });
+  } catch (error) {
+    console.error("Error registering admin:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    connection.release();
   }
 });
 

@@ -18,14 +18,8 @@ export default function LoginForm() {
     try {
       const user = await loginUser(formData);
       alert("Login successful!");
-      localStorage.setItem("user", JSON.stringify(user)); // Store user data
-      if (user.role === "consultant") {
-        window.location.href = "/consultant-dashboard";
-      } else if (user.role === "seller") {
-        window.location.href = "/seller-dashboard";
-      } else {
-        window.location.href = "/";
-      }
+      localStorage.setItem("user", JSON.stringify(user)); // Ensure is_seller and is_consultant are stored
+      window.location.href = "/"; // Redirect to home page
     } catch (err) {
       alert("Login failed: " + err.response?.data?.error);
     }

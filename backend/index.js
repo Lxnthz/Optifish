@@ -5,17 +5,17 @@ import dotenv from "dotenv";
 import session from "express-session";
 import passport from "passport";
 import authRoutes from "./routes/authRoutes.js";
-import googleAuthRoutes from "./routes/googleAuthRoutes.js";
+import fetchRoutes from "./routes/fetchRoutes.js"; // Import fetchRoutes
 
 dotenv.config();
 
-// Fix for BigInt serialization in JSON
+// Custom BigInt serializer
 BigInt.prototype.toJSON = function () {
-  return this.toString();
+  return this.toString(); // Convert BigInt to string for JSON serialization
 };
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 app.use(helmet());
 app.disable("x-powered-by");
@@ -46,9 +46,9 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+// Register routes
 app.use("/api/auth", authRoutes);
-app.use("/api/auth", googleAuthRoutes);
+app.use("/api", fetchRoutes); // Register fetchRoutes
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
