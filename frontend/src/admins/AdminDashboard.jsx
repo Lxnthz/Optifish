@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
+import UsersTab from "./components/UsersTab";
+import RequestsTab from "./components/RequestsTab";
+import PendingBlogsTab from "./components/PendingBlogsTab";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Define API_BASE_URL
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("users"); // Default tab
+  const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
-  const [requests, setRequests] = useState([]); // Initialize as an empty array
+  const [requests, setRequests] = useState([]);
+  const [pendingBlogs, setPendingBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -12,6 +18,8 @@ export default function AdminDashboard() {
       fetchUsers();
     } else if (activeTab === "store-requests") {
       fetchRequests();
+    } else if (activeTab === "pending-blogs") {
+      fetchPendingBlogs();
     }
   }, [activeTab]);
 
@@ -19,7 +27,7 @@ export default function AdminDashboard() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("http://localhost:3000/api/users");
+      const response = await fetch(`${API_BASE_URL}/api/users`); // Use API_BASE_URL
       if (!response.ok) {
         throw new Error(`Failed to fetch users: ${response.status}`);
       }
@@ -37,18 +45,36 @@ export default function AdminDashboard() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/role-upgrade-requests"
-      );
+      const response = await fetch(`${API_BASE_URL}/api/role-upgrade-requests`); // Use API_BASE_URL
       if (!response.ok) {
         throw new Error(`Failed to fetch requests: ${response.status}`);
       }
       const data = await response.json();
-      console.log("Fetched requests from API:", data); // Debug log
-      setRequests(data); // Update the requests state
+      setRequests(data);
     } catch (error) {
       console.error("Error fetching requests:", error);
       setError(error.message || "An error occurred while fetching requests.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPendingBlogs = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/blogs/pending`); // Use API_BASE_URL
+      if (!response.ok) {
+        throw new Error(`Failed to fetch pending blogs: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Pending Blogs:", data); // Debugging log
+      setPendingBlogs(data);
+    } catch (error) {
+      console.error("Error fetching pending blogs:", error);
+      setError(
+        error.message || "An error occurred while fetching pending blogs."
+      );
     } finally {
       setLoading(false);
     }
@@ -59,7 +85,7 @@ export default function AdminDashboard() {
     setError("");
     try {
       const response = await fetch(
-        `http://localhost:3000/api/role-upgrade-requests/${requestId}`,
+        `${API_BASE_URL}/api/role-upgrade-requests/${requestId}`,
         {
           method: "PATCH",
           headers: {
@@ -67,19 +93,48 @@ export default function AdminDashboard() {
           },
           body: JSON.stringify({ status: action }),
         }
-      );
+      ); // Use API_BASE_URL
 
       if (!response.ok) {
-        throw new Error(`Failed to update request: ${response.status}`);
+        throw new Error(`Failed to update request status: ${response.status}`);
       }
 
       const data = await response.json();
       alert(data.message); // Show success message
       fetchRequests(); // Refresh the requests list
     } catch (error) {
-      console.error("Error updating request:", error);
+      console.error("Error updating request status:", error);
       setError(
-        error.message || "An error occurred while updating the request."
+        error.message || "An error occurred while updating the request status."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBlogAction = async (blogId, action) => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/blogs/${blogId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: action }),
+      }); // Use API_BASE_URL
+
+      if (!response.ok) {
+        throw new Error(`Failed to update blog status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      alert(data.message); // Show success message
+      fetchPendingBlogs(); // Refresh the pending blogs list
+    } catch (error) {
+      console.error("Error updating blog status:", error);
+      setError(
+        error.message || "An error occurred while updating the blog status."
       );
     } finally {
       setLoading(false);
@@ -130,124 +185,34 @@ export default function AdminDashboard() {
               Users Requests
             </button>
           </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("pending-blogs")}
+              className={`w-full text-left py-2 px-4 rounded-lg font-medium ${
+                activeTab === "pending-blogs"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}>
+              Pending Blogs
+            </button>
+          </li>
         </ul>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 p-6">
-        {activeTab === "users" && (
-          <div>
-            <h1 className="text-2xl font-bold mb-4">Registered Users</h1>
-            <table className="w-full border-collapse border border-gray-300">
-              <thead>
-                <tr>
-                  <th className="border border-gray-300 px-4 py-2">ID</th>
-                  <th className="border border-gray-300 px-4 py-2">
-                    Full Name
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2">Email</th>
-                  <th className="border border-gray-300 px-4 py-2">Role</th>
-                  <th className="border border-gray-300 px-4 py-2">Is Seller</th>
-                  <th className="border border-gray-300 px-4 py-2">Is Consultant</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.id}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.full_name}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.email}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.role}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.is_seller ? "Yes" : "No"}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.is_consultant ? "Yes" : "No"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
+        {activeTab === "users" && <UsersTab users={users} />}
         {activeTab === "store-requests" && (
-          <div>
-            <h1 className="text-2xl font-bold mb-4">Users Requests</h1>
-            <table className="w-full border-collapse border border-gray-300">
-              <thead>
-                <tr>
-                  <th className="border border-gray-300 px-4 py-2">
-                    Request ID
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2">
-                    User Name
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2">Email</th>
-                  <th className="border border-gray-300 px-4 py-2">
-                    Requested Role
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2">Date</th>
-                  <th className="border border-gray-300 px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {requests.length > 0 ? (
-                  requests.map((request) => (
-                    <tr key={request.id}>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {request.id}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {request.full_name}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {request.email}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {request.requested_role}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {new Date(request.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        <button
-                          onClick={() =>
-                            handleRequestAction(request.id, "approved")
-                          }
-                          className="bg-green-500 text-white py-1 px-3 rounded-lg hover:bg-green-600 mr-2">
-                          Approve
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleRequestAction(request.id, "rejected")
-                          }
-                          className="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">
-                          Reject
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="border border-gray-300 px-4 py-2 text-center text-gray-500">
-                      No requests found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <RequestsTab
+            requests={requests}
+            handleRequestAction={handleRequestAction}
+          />
+        )}
+        {activeTab === "pending-blogs" && (
+          <PendingBlogsTab
+            pendingBlogs={pendingBlogs}
+            handleBlogAction={handleBlogAction}
+          />
         )}
       </div>
     </div>

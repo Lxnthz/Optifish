@@ -12,6 +12,10 @@ import Calculator from "./pages/Calculator.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import StorePage from "./components/Settings/StorePage";
 import Keranjang from "./pages/Keranjang.jsx";
+import Blog from "./pages/Blog";
+import BlogDetail from "./components/Blog/BlogDetail";
+import WriteBlog from "./components/Blog/WriteBlog";
+import GroupBuyPage from "./pages/GroupBuyPage";
 
 function App() {
   const user = JSON.parse(localStorage.getItem("user")); // Assuming user data is stored in localStorage
@@ -28,6 +32,10 @@ function App() {
           <Route path="/kalkulator" element={<Calculator />} />
           <Route path="/produk" element={<ProductPage />} />
           <Route path="/keranjang" element={<Keranjang userId={user?.id} />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
+          <Route path="/blog/write" element={<WriteBlog />} />
+          <Route path="/group-buying-list" element={<GroupBuyPage />} />
         </Route>
 
         {/* Admin Layout */}

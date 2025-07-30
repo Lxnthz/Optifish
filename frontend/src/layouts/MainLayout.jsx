@@ -10,7 +10,7 @@ export default function MainLayout() {
   const isRegisterPage = location.pathname === "/register";
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
       {/* Conditionally render NavigationBar */}
       {!isLoginPage && <NavigationBar /> && !isRegisterPage && <NavigationBar />}
       <main className="flex-1 flex flex-col">

@@ -165,6 +165,7 @@ export default function Keranjang({ userId }) {
       totalAmount: grandTotal,
       loyaltyPoints,
       tag: "Personal",
+      productIds: cartItems.map((item) => item.product_id), // Ensure product IDs are included
     };
 
     try {

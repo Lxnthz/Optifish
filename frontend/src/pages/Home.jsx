@@ -7,7 +7,7 @@ import BlogHome from '../components/Home/BlogHome.jsx'
 
 export default function Home() {
   return (
-    <section className='flex flex-col gap-y-5'>
+    <section className='flex flex-col gap-y-5 font-bold'>
       <Hero />
       <Services />
       <HomeCatalog />

@@ -5,10 +5,13 @@ import dotenv from "dotenv";
 import session from "express-session";
 import passport from "passport";
 import authRoutes from "./routes/authRoutes.js";
-import fetchRoutes from "./routes/fetchRoutes.js"; // Import fetchRoutes
+import fetchRoutes from "./routes/fetchRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import transactionRoutes from "./routes/transactionRoutes.js";
+import testimonyRoutes from "./routes/testimonyRoutes.js";
+import blogRoutes from "./routes/blogRoutes.js";
+import groupBuyRoutes from "./routes/groupBuyRoutes.js"; 
 
 dotenv.config();
 
@@ -52,6 +55,9 @@ app.use("/api", fetchRoutes); // Register fetchRoutes
 app.use("/api", productRoutes);
 app.use("/api", cartRoutes);
 app.use("/api", transactionRoutes);
+app.use("/api", testimonyRoutes);
+app.use("/api", blogRoutes);
+app.use("/api", groupBuyRoutes);
 app.use(
   "/uploads",
   (req, res, next) => {
@@ -62,6 +68,11 @@ app.use(
   },
   express.static("uploads")
 );
+
+app.use((req, res, next) => {
+  console.log(`Unhandled request: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ error: "Route not found" });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

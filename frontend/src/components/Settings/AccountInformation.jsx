@@ -5,13 +5,35 @@ import Silver from "../../assets/elements/Progress/Silver.png";
 import Gold from "../../assets/elements/Progress/Gold.png";
 import Basic from "../../assets/elements/Progress/Basic.png";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function AccountInformation({ user }) {
   const [profilePicture, setProfilePicture] = useState(
     user.profile_picture || Blank
   );
   const [name, setName] = useState(user.full_name || "Unknown User");
   const [email, setEmail] = useState(user.email || "No Email Provided");
-  const [currentPoints, setCurrentPoints] = useState(user.loyalty_points || 0);
+  const [currentPoints, setCurrentPoints] = useState(0); // Default to 0
+
+  useEffect(() => {
+    const fetchLoyaltyPoints = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/users/${user.id}/loyalty-points`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentPoints(data.loyalty_points);
+        } else {
+          console.error("Failed to fetch loyalty points:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching loyalty points:", error);
+      }
+    };
+
+    fetchLoyaltyPoints();
+  }, [user.id]);
 
   // Determine next level points
   const nextLevelPoints =
