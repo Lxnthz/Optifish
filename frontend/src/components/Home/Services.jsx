@@ -11,8 +11,8 @@ export default function Services() {
       <motion.div
         className="p-2 bg-center bg-no-repeat bg-cover rounded-xl lg:flex-1/2"
         style={{ backgroundImage: `url(${consult})` }}
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: -100 }}
+        whileInView={{ opacity: 1, x: 0 }}
         transition={{ duration: 1, delay: 0.2 }}>
         <div className="border-2 border-white rounded-xl min-h-full">
           <motion.div
@@ -68,9 +68,9 @@ export default function Services() {
       <motion.div
         className="p-2 bg-center bg-no-repeat bg-cover rounded-xl lg:flex-1/2"
         style={{ backgroundImage: `url(${calculator})` }}
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.4 }}>
+        initial={{ opacity: 0, x: 100 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1 }}>
         <div className="border-2 border-white rounded-xl min-h-full">
           <motion.div
             className="flex flex-col items-start justify-center p-5 min-h-full"

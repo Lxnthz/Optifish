@@ -158,6 +158,15 @@ export default function NavigationBar() {
                 }`}>
                 Blog
               </Link>
+              <Link
+                to="/group-buying-list"
+                className={`py-2 px-3 flex items-center rounded-2xl ${
+                  isScrolled
+                    ? "transition-all duration-300 hover:bg-[#04397B] hover:text-white"
+                    : ""
+                }`}>
+                Group Buying
+              </Link>
             </div>
 
             {/* Desktop "Akun" and "Keranjang" */}

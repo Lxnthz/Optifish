@@ -1,6 +1,8 @@
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout"; // New Admin Layout
+import ProductPage from "./pages/ProductPage";
 import Home from "./pages/Home";
 import LoginForm from "./components/LoginRegister/LoginForm.jsx";
 import RegisterForm from "./components/LoginRegister/RegisterForm.jsx";
@@ -8,8 +10,12 @@ import AdminLogin from "./admins/AdminLogin.jsx";
 import AdminDashboard from "./admins/AdminDashboard.jsx"; // Admin Dashboard
 import Calculator from "./pages/Calculator.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
+import StorePage from "./components/Settings/StorePage";
+import Keranjang from "./pages/Keranjang.jsx";
 
 function App() {
+  const user = JSON.parse(localStorage.getItem("user")); // Assuming user data is stored in localStorage
+
   return (
     <Router>
       <Routes>
@@ -20,6 +26,8 @@ function App() {
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/kalkulator" element={<Calculator />} />
+          <Route path="/produk" element={<ProductPage />} />
+          <Route path="/keranjang" element={<Keranjang userId={user?.id} />} />
         </Route>
 
         {/* Admin Layout */}

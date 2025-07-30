@@ -11,9 +11,13 @@ export default function SettingsPage() {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser)); // Ensure is_seller and is_consultant are part of the user object
+      setUser(JSON.parse(storedUser));
+    } else {
+      console.error("No user found in localStorage");
     }
   }, []);
+
+  console.log("Stored user:", user);
 
   const handleRoleUpgradeRequest = async (role) => {
     try {
@@ -48,7 +52,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen mx-1 lg:mx-13 mt-5 lg:mt-13 mb-5">
       {/* Sidebar */}
-      <div className="hidden lg:block w-1/4 bg-white shadow-lg rounded-lg p-5 mt-13">
+      <div className="hidden lg:block w-1/4 bg-white shadow-sm rounded-lg p-5 mt-13 inset-shadow-sm sticky top-26 h-[calc(100vh-40px)]">
         <ul className="space-y-4">
           <li>
             <button
@@ -98,11 +102,14 @@ export default function SettingsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 mt-13">
-        {activeTab === "profile" && <AccountInformation user={user} />}
+      <div className="flex-1 p-6 mt-7 rounded-xl overflow-y-auto">
+        {activeTab === "profile" && (
+          <AccountInformation userId={user.id} user={user} />
+        )}
         {activeTab === "store" && (
           <StorePage
             user={user}
+            userId={user.id}
             handleRoleUpgradeRequest={handleRoleUpgradeRequest}
           />
         )}
@@ -112,7 +119,7 @@ export default function SettingsPage() {
             handleRoleUpgradeRequest={handleRoleUpgradeRequest}
           />
         )}
-        {activeTab === "transactions" && <TransactionHistory />}
+        {activeTab === "transactions" && <TransactionHistory userId={user.id} />}
       </div>
     </div>
   );

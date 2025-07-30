@@ -6,6 +6,9 @@ import session from "express-session";
 import passport from "passport";
 import authRoutes from "./routes/authRoutes.js";
 import fetchRoutes from "./routes/fetchRoutes.js"; // Import fetchRoutes
+import productRoutes from "./routes/productRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import transactionRoutes from "./routes/transactionRoutes.js";
 
 dotenv.config();
 
@@ -20,16 +23,13 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet());
 app.disable("x-powered-by");
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:5173"];
+const allowedOrigins = ["http://localhost:5173"];
+
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true, // Allow cookies and credentials
   })
 );
 
@@ -49,6 +49,19 @@ app.use(passport.session());
 // Register routes
 app.use("/api/auth", authRoutes);
 app.use("/api", fetchRoutes); // Register fetchRoutes
+app.use("/api", productRoutes);
+app.use("/api", cartRoutes);
+app.use("/api", transactionRoutes);
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    next();
+  },
+  express.static("uploads")
+);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

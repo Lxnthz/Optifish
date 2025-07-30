@@ -123,4 +123,40 @@ router.patch("/role-upgrade-requests/:id", async (req, res) => {
   }
 });
 
+router.get("/users/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log("Fetching user data for ID:", id); // Debug log
+  let connection;
+
+  try {
+    connection = await pool.getConnection();
+
+    // Fetch user data
+    const [rows] = await connection.query("SELECT * FROM users WHERE id = ?", [
+      id,
+    ]);
+
+    if (!rows.length) {
+      console.log("User not found for ID:", id); // Debug log
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = rows[0];
+    console.log("Fetched User Data:", user); // Debug log
+
+    res.status(200).json({
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      profile_picture: user.profile_picture,
+      loyalty_points: user.loyalty_points,
+    });
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 export default router;
