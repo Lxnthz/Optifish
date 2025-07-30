@@ -1,10 +1,66 @@
 import React, { useEffect, useState } from "react";
+import DynamicPaymentModal from "../components/Products/ProductDetails/DynamicPaymentModal";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const EXPEDITIONS = [
+  { name: "Anter Aja", price: 15000 },
+  { name: "GoSend", price: 20000 },
+  { name: "Grab", price: 18000 },
+  { name: "JNE", price: 25000 },
+  { name: "JNT", price: 22000 },
+  { name: "Lion Parcel", price: 17000 },
+  { name: "PosInd", price: 20000 },
+  { name: "SiCepat", price: 19000 },
+  { name: "Tiki", price: 21000 },
+];
+
+const PAYMENT_METHODS = [
+  "BCA",
+  "BNI",
+  "BRI",
+  "BSI",
+  "Dana",
+  "GoPay",
+  "LinkAja",
+  "Mandiri",
+  "OVO",
+  "QRIS",
+  "ShopeePay",
+];
+
+const PAYMENT_TAXES = {
+  BCA: 2,
+  BNI: 2,
+  BRI: 2,
+  BSI: 2,
+  Mandiri: 2,
+  Dana: 3,
+  GoPay: 3,
+  LinkAja: 3,
+  OVO: 3,
+  QRIS: 4,
+  ShopeePay: 4,
+};
 
 export default function GroupBuyPage() {
   const [groupBuys, setGroupBuys] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedGroupBuy, setSelectedGroupBuy] = useState(null);
+  const [receiverName, setReceiverName] = useState("");
+  const [address, setAddress] = useState("");
+  const [selectedExpedition, setSelectedExpedition] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("BCA");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const discounts = {
+    2: 5,
+    5: 7,
+    10: 10,
+  };
 
   useEffect(() => {
     const fetchGroupBuys = async () => {
@@ -45,39 +101,46 @@ export default function GroupBuyPage() {
     return () => clearInterval(interval);
   }, [groupBuys]);
 
-  const handleJoinGroupBuy = async (groupBuyId) => {
-    const user = JSON.parse(localStorage.getItem("user"));
+  const handleJoinGroupBuy = (groupBuy) => {
     if (!user) {
       alert("You must be logged in to join a group buy.");
       return;
     }
 
+    setSelectedGroupBuy(groupBuy); // Set the selected group buy
+    setIsPaymentModalOpen(true); // Open the payment modal
+  };
+
+  const handleCompletePayment = async (totalAmount) => {
+    if (!selectedGroupBuy) return;
+
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/group-buys/${groupBuyId}/join`,
+        `${API_BASE_URL}/api/group-buy/transaction`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: user.id }),
+          body: JSON.stringify({
+            userId: user.id,
+            groupBuyId: selectedGroupBuy.id,
+            amount: totalAmount,
+            paymentMethod: selectedPaymentMethod,
+            receiverName,
+            address,
+            expedition: selectedExpedition.name,
+          }),
         }
       );
 
       if (response.ok) {
-        alert("Successfully joined the group buy!");
-        setGroupBuys((prev) =>
-          prev.map((groupBuy) =>
-            groupBuy.id === groupBuyId
-              ? { ...groupBuy, current_users: groupBuy.current_users + 1 }
-              : groupBuy
-          )
-        );
+        alert("Payment completed successfully!");
+        setIsPaymentModalOpen(false);
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || "Failed to join group buy.");
+        alert("Failed to complete payment.");
       }
     } catch (error) {
-      console.error("Error joining group buy:", error);
-      alert("An error occurred while joining the group buy.");
+      console.error("Error completing payment:", error);
+      alert("An error occurred while completing the payment.");
     }
   };
 
@@ -89,7 +152,6 @@ export default function GroupBuyPage() {
       ) : groupBuys.length > 0 ? (
         <ul className="space-y-4">
           {groupBuys.map((groupBuy) => {
-            const user = JSON.parse(localStorage.getItem("user"));
             const hasJoined = groupBuy.participants?.some(
               (participant) => participant.userId === user?.id
             );
@@ -102,7 +164,7 @@ export default function GroupBuyPage() {
                 <p>Discount: {groupBuy.discount_percentage}%</p>
                 <p>Expires At: {groupBuy.timeLeft || "Expired"}</p>
                 <button
-                  onClick={() => handleJoinGroupBuy(groupBuy.id)}
+                  onClick={() => handleJoinGroupBuy(groupBuy)}
                   className={`py-2 px-4 rounded-lg ${
                     hasJoined
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -117,6 +179,31 @@ export default function GroupBuyPage() {
         </ul>
       ) : (
         <p>No active group buys.</p>
+      )}
+
+      {/* Payment Modal */}
+      {isPaymentModalOpen && (
+        <ErrorBoundary>
+          <DynamicPaymentModal
+          isPaymentModalOpen={isPaymentModalOpen}
+          setIsPaymentModalOpen={setIsPaymentModalOpen}
+          groupBuyId={selectedGroupBuy?.id} // Log this value
+          selectedParticipants={selectedGroupBuy?.current_users}
+          selectedPaymentMethod={selectedPaymentMethod}
+          setSelectedPaymentMethod={setSelectedPaymentMethod}
+          receiverName={receiverName}
+          setReceiverName={setReceiverName}
+          address={address}
+          setAddress={setAddress}
+          selectedExpedition={selectedExpedition}
+          setSelectedExpedition={setSelectedExpedition}
+          handleCompletePayment={handleCompletePayment}
+          EXPEDITIONS={EXPEDITIONS}
+          PAYMENT_METHODS={PAYMENT_METHODS}
+          PAYMENT_TAXES={PAYMENT_TAXES}
+          discounts={discounts}
+        />
+        </ErrorBoundary>
       )}
     </div>
   );

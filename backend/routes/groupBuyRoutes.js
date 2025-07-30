@@ -222,8 +222,8 @@ router.post("/group-buy/transaction", async (req, res) => {
     // Add the user as a participant in the group buy
     const participantQuery = `
       INSERT INTO group_buy_participants (group_buy_id, user_id, payment_status)
-      VALUES (?, ?, 'pending')
-      ON DUPLICATE KEY UPDATE payment_status = 'pending'
+      VALUES (?, ?, 'completed')
+      ON DUPLICATE KEY UPDATE payment_status = 'completed'
     `;
     await connection.query(participantQuery, [groupBuyId, userId]);
 
@@ -237,6 +237,44 @@ router.post("/group-buy/transaction", async (req, res) => {
   } catch (error) {
     console.error("Error creating group buy transaction:", error);
     await connection.rollback();
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    connection.release();
+  }
+});
+
+// Fetch Product ID by Group Buy ID
+router.get("/group-buys/:groupBuyId/product", async (req, res) => {
+  const { groupBuyId } = req.params;
+
+  if (!groupBuyId) {
+    console.error("Group Buy ID is missing in the request.");
+    return res.status(400).json({ error: "Group Buy ID is required." });
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    const query = `
+      SELECT 
+        gb.product_id AS productId,
+        p.name AS productName,
+        p.price AS productPrice,
+        p.description AS productDescription,
+        p.photo AS productPhoto
+      FROM group_buys gb
+      JOIN products p ON gb.product_id = p.id
+      WHERE gb.id = ?
+    `;
+    const result = await connection.query(query, [groupBuyId]);
+
+    if (!result) {
+      console.error("Group Buy not found for ID:", groupBuyId);
+      return res.status(404).json({ error: "Group Buy not found." });
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error fetching product details:", error);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     connection.release();

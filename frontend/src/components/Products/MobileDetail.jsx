@@ -1,7 +1,53 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaStar } from "react-icons/fa";
-import { FaCartPlus } from "react-icons/fa";
+import { FaStar, FaCartPlus } from "react-icons/fa";
+import ProductHeader from "./ProductDetails/ProductHeader";
+import ProductImage from "./ProductDetails/ProductImage";
+import ProductDetails from "./ProductDetails/ProductDetails";
+import ActionButtons from "./ProductDetails/ActionButtons";
+import ReviewsSection from "./ProductDetails/ReviewsSection";
+import ParticipantsModal from "./ProductDetails/ParticipantsModal";
+import PaymentModal from "./ProductDetails/PaymentModal";
+
+const EXPEDITIONS = [
+  { name: "Anter Aja", price: 15000 },
+  { name: "GoSend", price: 20000 },
+  { name: "Grab", price: 18000 },
+  { name: "JNE", price: 25000 },
+  { name: "JNT", price: 22000 },
+  { name: "Lion Parcel", price: 17000 },
+  { name: "PosInd", price: 20000 },
+  { name: "SiCepat", price: 19000 },
+  { name: "Tiki", price: 21000 },
+];
+
+const PAYMENT_METHODS = [
+  "BCA",
+  "BNI",
+  "BRI",
+  "BSI",
+  "Dana",
+  "GoPay",
+  "LinkAja",
+  "Mandiri",
+  "OVO",
+  "QRIS",
+  "ShopeePay",
+];
+
+const PAYMENT_TAXES = {
+  BCA: 2,
+  BNI: 2,
+  BRI: 2,
+  BSI: 2,
+  Mandiri: 2,
+  Dana: 3,
+  GoPay: 3,
+  LinkAja: 3,
+  OVO: 3,
+  QRIS: 4,
+  ShopeePay: 4,
+};
 
 export default function MobileDetail({
   product,
@@ -13,9 +59,12 @@ export default function MobileDetail({
   const [averageRating, setAverageRating] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedParticipants, setSelectedParticipants] = useState(2);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedParticipants, setSelectedParticipants] = useState(2);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("BCA");
+  const [receiverName, setReceiverName] = useState("");
+  const [address, setAddress] = useState("");
+  const [selectedExpedition, setSelectedExpedition] = useState(EXPEDITIONS[0]);
   const [groupBuyId, setGroupBuyId] = useState(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const user = JSON.parse(localStorage.getItem("user"));
@@ -92,10 +141,7 @@ export default function MobileDetail({
     }
   };
 
-  const handleCompletePayment = async () => {
-    const discountedPrice =
-      product.price - (product.price * discounts[selectedParticipants]) / 100;
-
+  const handleCompletePayment = async (totalAmount) => {
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/group-buy/transaction`,
@@ -105,8 +151,11 @@ export default function MobileDetail({
           body: JSON.stringify({
             userId: user.id,
             groupBuyId: groupBuyId,
-            amount: discountedPrice,
+            amount: totalAmount,
             paymentMethod: selectedPaymentMethod,
+            receiverName,
+            address,
+            expedition: selectedExpedition.name,
           }),
         }
       );
@@ -139,199 +188,48 @@ export default function MobileDetail({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ duration: 0.3 }}>
-            {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">{product.name}</h3>
-              <button
-                onClick={onClose}
-                className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 text-xs">
-                Tutup
-              </button>
-            </div>
-
-            {/* Product Image */}
-            <img
-              src={`${API_BASE_URL}${product.photo}`}
-              alt={product.name}
-              className="w-full h-64 md:h-80 object-cover rounded-lg mb-4"
-              crossOrigin="anonymous"
+            <ProductHeader product={product} onClose={onClose} />
+            <ProductImage product={product} />
+            <ProductDetails
+              product={product}
+              averageRating={averageRating}
+              reviews={reviews}
             />
-
-            {/* Product Details */}
-            <div className="space-y-2">
-              <p className="text-xs text-gray-700 bg-cyan-100 w-fit px-2 py-1 rounded-lg">
-                {product.category}
-              </p>
-              <p className="text-md text-gray-700 w-full border-b-1 border-gray-300 pb-2">
-                Rp. {product.price.toLocaleString()}
-              </p>
-
-              {/* Average Rating */}
-              <div className="flex items-center gap-2">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <FaStar
-                      key={star}
-                      className={`text-md ${
-                        star <= Math.round(averageRating)
-                          ? "text-yellow-500"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600">
-                  {averageRating.toFixed(1)} / 5 ({reviews.length} reviews)
-                </p>
-              </div>
-
-              <p className="text-sm text-black flex flex-col gap-y-1">
-                <span className="font-bold">Deskripsi Produk</span>
-                <span className="font-medium">{product.description}</span>
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-between mt-4 items-center">
-              <div className="text-white py-2 px-4 text-xs flex w-full justify-center gap-x-2">
-                <button
-                  onClick={() => onAddToCart(product)}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 text-xs flex gap-x-1">
-                  <FaCartPlus className="text-sm" />
-                  Keranjang
-                </button>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600"
-                  disabled={loading}>
-                  {loading ? "Starting Group Buy..." : "Ajukan Group Buy"}
-                </button>
-              </div>
-            </div>
-
-            {/* Latest Reviews */}
-            <div className="mt-6">
-              <h4 className="text-lg font-bold mb-2">Review Terakhir</h4>
-              {reviews.length > 0 ? (
-                <div className="space-y-3">
-                  {reviews.slice(0, 3).map((review, index) => (
-                    <div
-                      key={index}
-                      className="border border-gray-300 rounded-lg p-3">
-                      <p className="text-sm font-bold text-gray-800">
-                        {review.reviewer_name}
-                      </p>
-                      <div className="flex items-center mb-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <FaStar
-                            key={star}
-                            className={`text-sm ${
-                              star <= review.stars
-                                ? "text-yellow-500"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm text-gray-600">{review.message}</p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {new Date(review.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Belum ada review untuk produk ini.
-                </p>
-              )}
-            </div>
-
-            {/* Modal for Selecting Participants */}
-            {isModalOpen && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                  <h2 className="text-xl font-bold mb-4">
-                    Select Participants
-                  </h2>
-                  <div className="space-y-4">
-                    {[2, 5, 10].map((option) => (
-                      <div key={option} className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          id={`participants-${option}`}
-                          name="participants"
-                          value={option}
-                          checked={selectedParticipants === option}
-                          onChange={() => setSelectedParticipants(option)}
-                        />
-                        <label htmlFor={`participants-${option}`}>
-                          {option} Participants - {discounts[option]}% Discount
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 flex justify-end gap-4">
-                    <button
-                      onClick={() => setIsModalOpen(false)}
-                      className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400">
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleStartGroupBuy}
-                      className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-                      disabled={loading}>
-                      {loading ? "Starting..." : "Start Group Buy"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Payment Modal */}
-            {isPaymentModalOpen && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                  <h2 className="text-xl font-bold mb-4">Complete Payment</h2>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Discounted Price: Rp.{" "}
-                    {(
-                      product.price -
-                      (product.price * discounts[selectedParticipants]) / 100
-                    ).toLocaleString()}
-                  </p>
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Select Payment Method
-                    </label>
-                    <select
-                      value={selectedPaymentMethod}
-                      onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                      className="w-full border px-3 py-2 rounded-lg">
-                      {["BCA", "BNI", "BRI", "Mandiri", "OVO", "GoPay"].map(
-                        (method) => (
-                          <option key={method} value={method}>
-                            {method}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
-                  <div className="mt-6 flex justify-end gap-4">
-                    <button
-                      onClick={() => setIsPaymentModalOpen(false)}
-                      className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400">
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleCompletePayment}
-                      className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                      Pay Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <ActionButtons
+              product={product}
+              onAddToCart={onAddToCart}
+              setIsModalOpen={setIsModalOpen}
+              loading={loading}
+            />
+            <ReviewsSection reviews={reviews} />
+            <ParticipantsModal
+              isModalOpen={isModalOpen}
+              setIsModalOpen={setIsModalOpen}
+              selectedParticipants={selectedParticipants}
+              setSelectedParticipants={setSelectedParticipants}
+              handleStartGroupBuy={handleStartGroupBuy}
+              loading={loading}
+              discounts={discounts}
+            />
+            <PaymentModal
+              isPaymentModalOpen={isPaymentModalOpen}
+              setIsPaymentModalOpen={setIsPaymentModalOpen}
+              product={product}
+              selectedParticipants={selectedParticipants}
+              selectedPaymentMethod={selectedPaymentMethod}
+              setSelectedPaymentMethod={setSelectedPaymentMethod}
+              receiverName={receiverName}
+              setReceiverName={setReceiverName}
+              address={address}
+              setAddress={setAddress}
+              selectedExpedition={selectedExpedition}
+              setSelectedExpedition={setSelectedExpedition}
+              handleCompletePayment={handleCompletePayment}
+              EXPEDITIONS={EXPEDITIONS}
+              PAYMENT_METHODS={PAYMENT_METHODS}
+              PAYMENT_TAXES={PAYMENT_TAXES}
+              discounts={discounts}
+            />
           </motion.div>
         </motion.div>
       )}
